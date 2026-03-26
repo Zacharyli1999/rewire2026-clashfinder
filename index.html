@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewire 2026 — Clash Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3a;
+  --text: #e8e6f0;
+  --text-dim: #8888a0;
+  --accent: #ff4d00;
+  --accent2: #ff6b2b;
+  --green: #00e676;
+  --yellow: #ffd740;
+  --red: #ff1744;
+  --blue: #448aff;
+  --purple: #b388ff;
+  --cyan: #18ffff;
+  --highlight-1: #ff4d0033;
+  --highlight-2: #00e67633;
+  --highlight-3: #448aff33;
+  --highlight-border-1: #ff4d00;
+  --highlight-border-2: #00e676;
+  --highlight-border-3: #448aff;
+  --clash-bg: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(255, 23, 68, 0.15) 4px,
+    rgba(255, 23, 68, 0.15) 8px
+  );
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── HEADER ─── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+}
+
+.header-inner {
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.logo span { color: var(--accent); }
+
+.logo-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.day-tab {
+  padding: 6px 14px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.day-tab:hover { color: var(--text); background: var(--surface2); }
+.day-tab.active { background: var(--accent); color: white; }
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn.primary:hover { background: var(--accent2); }
+
+.search-box {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  border-radius: 6px;
+  width: 180px;
+  outline: none;
+}
+
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--text-dim); }
+
+/* ─── CLASH SUMMARY BAR ─── */
+.clash-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 24px;
+  display: none;
+}
+
+.clash-bar.visible { display: block; }
+
+.clash-bar-inner {
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.clash-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clash-item {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: rgba(255, 23, 68, 0.1);
+  border: 1px solid rgba(255, 23, 68, 0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clash-item:hover { background: rgba(255, 23, 68, 0.2); }
+
+.selected-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--green);
+  margin-left: auto;
+}
+
+/* ─── TIMETABLE ─── */
+.timetable-wrapper {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  overflow-x: auto;
+}
+
+.timetable {
+  position: relative;
+  min-width: 900px;
+}
+
+.time-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-left: 140px;
+}
+
+.time-tick {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: left;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 4px;
+  height: 24px;
+  line-height: 24px;
+}
+
+.venue-row {
+  display: flex;
+  position: relative;
+  min-height: 44px;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.4);
+}
+
+.venue-label {
+  width: 140px;
+  min-width: 140px;
+  padding: 4px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  left: 0;
+  background: var(--bg);
+  z-index: 5;
+  border-right: 1px solid var(--border);
+  line-height: 1.2;
+}
+
+.venue-label .zone-tag {
+  display: inline-block;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.zone-spui { background: rgba(68, 138, 255, 0.2); color: var(--blue); }
+.zone-grotemarkt { background: rgba(179, 136, 255, 0.2); color: var(--purple); }
+.zone-museumkwartier { background: rgba(24, 255, 255, 0.2); color: var(--cyan); }
+.zone-other { background: rgba(255, 215, 64, 0.2); color: var(--yellow); }
+
+.events-track {
+  flex: 1;
+  position: relative;
+  min-height: 44px;
+}
+
+.event-block {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 5px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 1;
+}
+
+.event-block:hover {
+  z-index: 3;
+  filter: brightness(1.3);
+  transform: scaleY(1.08);
+}
+
+.event-block .event-name {
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-block .event-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+/* Category colors */
+.cat-music { background: rgba(255, 77, 0, 0.25); border-color: rgba(255, 77, 0, 0.5); }
+.cat-film { background: rgba(68, 138, 255, 0.25); border-color: rgba(68, 138, 255, 0.5); }
+.cat-talk { background: rgba(179, 136, 255, 0.25); border-color: rgba(179, 136, 255, 0.5); }
+.cat-installation { background: rgba(24, 255, 255, 0.2); border-color: rgba(24, 255, 255, 0.4); }
+.cat-workshop { background: rgba(255, 215, 64, 0.25); border-color: rgba(255, 215, 64, 0.5); }
+.cat-club { background: rgba(255, 23, 68, 0.25); border-color: rgba(255, 23, 68, 0.5); }
+.cat-listening { background: rgba(0, 230, 118, 0.2); border-color: rgba(0, 230, 118, 0.4); }
+.cat-other { background: rgba(136, 136, 160, 0.2); border-color: rgba(136, 136, 160, 0.4); }
+
+/* Highlight states - use thick left border + glow, keep category bg */
+.event-block.highlighted {
+  z-index: 2;
+  filter: brightness(1.15);
+}
+
+.event-block.highlight-1 {
+  border-left: 4px solid #ff1744 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 23, 68, 0.5), 0 0 8px rgba(255, 23, 68, 0.3);
+}
+
+.event-block.highlight-2 {
+  border-left: 4px solid #ffd740 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 64, 0.5), 0 0 8px rgba(255, 215, 64, 0.3);
+}
+
+.event-block.highlight-3 {
+  border-left: 4px solid #448aff !important;
+  box-shadow: inset 0 0 0 1px rgba(68, 138, 255, 0.4), 0 0 8px rgba(68, 138, 255, 0.3);
+}
+
+.event-block.clashing::after {
+  content: '⚡';
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+}
+
+.event-block.dimmed {
+  opacity: 0.2;
+}
+
+/* ─── TOOLTIP ─── */
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  pointer-events: none;
+  display: none;
+  font-size: 13px;
+}
+
+.tooltip.visible { display: block; }
+.tooltip .tt-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.tooltip .tt-venue { color: var(--accent); font-size: 12px; }
+.tooltip .tt-time { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.tooltip .tt-cat { font-size: 11px; color: var(--text-dim); margin-top: 2px; text-transform: capitalize; }
+.tooltip .tt-hint { font-size: 10px; color: var(--text-dim); margin-top: 6px; opacity: 0.6; border-top: 1px solid var(--border); padding-top: 4px; }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.visible { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.modal h2 {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.modal p {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.modal textarea {
+  width: 100%;
+  min-height: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  padding: 12px;
+  resize: vertical;
+  outline: none;
+}
+
+.modal textarea:focus { border-color: var(--accent); }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.modal label {
+  font-size: 13px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.format-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.format-tab {
+  padding: 5px 12px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+}
+
+.format-tab.active { background: var(--accent); color: white; }
+
+/* ─── LEGEND ─── */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.legend-item:hover { color: var(--text); }
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ─── HIGHLIGHT PALETTE ─── */
+.highlight-palette {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.palette-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.palette-btn:hover { transform: scale(1.2); }
+.palette-btn.active { border-color: white; box-shadow: 0 0 8px currentColor; }
+.palette-btn.c1 { background: #ff1744; }
+.palette-btn.c2 { background: #ffd740; }
+.palette-btn.c3 { background: #448aff; }
+.palette-btn.eraser {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* ─── TIME GRID LINES ─── */
+.grid-lines {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 140px;
+  right: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(42, 42, 58, 0.3);
+}
+
+.grid-line.hour { background: rgba(42, 42, 58, 0.5); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .header-inner { flex-direction: column; align-items: flex-start; }
+  .venue-label { width: 100px; min-width: 100px; font-size: 9px; }
+  .time-header { padding-left: 100px; }
+  .grid-lines { left: 100px; }
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div>
+        REWIRE<span>///</span>2026
+        <div class="logo-sub">Clash Finder</div>
+      </div>
+    </div>
+
+    <div class="day-tabs" id="dayTabs">
+      <button class="day-tab active" data-day="thu">THU 9</button>
+      <button class="day-tab" data-day="fri">FRI 10</button>
+      <button class="day-tab" data-day="sat">SAT 11</button>
+      <button class="day-tab" data-day="sun">SUN 12</button>
+    </div>
+
+    <div class="header-controls">
+      <input class="search-box" id="searchBox" type="text" placeholder="Search artist...">
+      <button class="btn" id="btnImport" onclick="openImportModal()">⬆ Import</button>
+      <button class="btn" id="btnExport" onclick="exportData()">⬇ Export</button>
+      <button class="btn" id="btnShare" onclick="shareLink()">🔗 Share</button>
+      <button class="btn" id="btnClearHighlights" onclick="clearHighlights()">✕ Clear</button>
+      <button class="btn" id="btnShowClashes" onclick="toggleClashOnly()">⚡ Clashes</button>
+      <button class="btn" id="btnShowHighlighted" onclick="toggleHighlightedOnly()">★ My picks</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend" id="legend">
+  <span class="legend-title">Categories:</span>
+  <div class="legend-item" data-cat="music"><div class="legend-swatch cat-music"></div>Music</div>
+  <div class="legend-item" data-cat="club"><div class="legend-swatch cat-club"></div>Club</div>
+  <div class="legend-item" data-cat="film"><div class="legend-swatch cat-film"></div>Film</div>
+  <div class="legend-item" data-cat="talk"><div class="legend-swatch cat-talk"></div>Talk</div>
+  <div class="legend-item" data-cat="installation"><div class="legend-swatch cat-installation"></div>Installation</div>
+  <div class="legend-item" data-cat="workshop"><div class="legend-swatch cat-workshop"></div>Workshop</div>
+  <div class="legend-item" data-cat="listening"><div class="legend-swatch cat-listening"></div>Listening</div>
+
+  <div class="highlight-palette">
+    <span class="legend-title" style="margin-right:4px">Paint:</span>
+    <div class="palette-btn c1 active" data-color="1" title="★ Must see"></div>
+    <div class="palette-btn c2" data-color="2" title="◆ Interested"></div>
+    <div class="palette-btn c3" data-color="3" title="● Maybe"></div>
+    <div class="palette-btn eraser" data-color="0" title="Eraser">✕</div>
+  </div>
+</div>
+
+<div class="clash-bar" id="clashBar">
+  <div class="clash-bar-inner" id="clashBarInner">
+    <div class="clash-count">⚡ <span id="clashCountText">0 clashes</span></div>
+    <div id="clashItems"></div>
+    <div class="selected-count" id="selectedCount">0 selected</div>
+  </div>
+</div>
+
+<div class="timetable-wrapper">
+  <div class="timetable" id="timetable"></div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-venue" id="ttVenue"></div>
+  <div class="tt-time" id="ttTime"></div>
+  <div class="tt-cat" id="ttCat"></div>
+  <div class="tt-hint">Click = details · Right-click = highlight</div>
+</div>
+
+<!-- Detail Panel -->
+<div class="modal-overlay" id="detailPanel" onclick="if(event.target===this)closeDetail()">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
+      <div>
+        <h2 id="detailTitle" style="font-size:20px; line-height:1.3"></h2>
+        <div id="detailVenue" style="color:var(--accent); font-size:13px; margin-top:4px"></div>
+      </div>
+      <button class="btn" onclick="closeDetail()" style="flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px">
+      <span id="detailDay" style="font-family:'Space Mono',monospace; font-size:12px; background:var(--surface2); padding:4px 10px; border-radius:4px"></span>
+      <span id="detailTime" style="font-family:'Space Mono',monospace; font-size:12px; background:var(--surface2); padding:4px 10px; border-radius:4px"></span>
+      <span id="detailCat" style="font-size:12px; padding:4px 10px; border-radius:4px; text-transform:capitalize"></span>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px">
+      <button class="btn" style="border-color:#ff1744; color:#ff1744" onclick="highlightFromDetail(1)">★ Must see</button>
+      <button class="btn" style="border-color:#ffd740; color:#ffd740" onclick="highlightFromDetail(2)">◆ Interested</button>
+      <button class="btn" style="border-color:#448aff; color:#448aff" onclick="highlightFromDetail(3)">● Maybe</button>
+      <button class="btn" onclick="highlightFromDetail(0)">✕ Remove</button>
+    </div>
+    <a id="detailLink" href="#" target="_blank" class="btn primary" style="display:inline-flex; text-decoration:none; margin-bottom:8px">View on Rewire website →</a>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h2>Import Timetable Data</h2>
+    <p>Click "Fetch from Rewire API" to automatically load all 200+ events. Or paste your own data below in CSV/JSON format.</p>
+
+    <div class="format-tabs">
+      <button class="format-tab active" onclick="setImportFormat('csv')">CSV</button>
+      <button class="format-tab" onclick="setImportFormat('json')">JSON</button>
+    </div>
+
+    <div id="csvHelp">
+      <label>CSV format: <code>day, venue, start, end, artist, category</code></label>
+      <p style="font-size:11px; margin-bottom:8px">
+        Day: thu/fri/sat/sun · Time: HH:MM (24h) · Category: music/club/film/talk/installation/workshop/listening<br>
+        Example: <code>fri, Amare - Concertzaal, 19:00, 20:15, Oneohtrix Point Never, music</code>
+      </p>
+    </div>
+    <div id="jsonHelp" style="display:none">
+      <label>JSON format: array of event objects</label>
+      <p style="font-size:11px; margin-bottom:8px">
+        <code>[{"day":"fri","venue":"Amare - Concertzaal","start":"19:00","end":"20:15","artist":"OPN","category":"music"}]</code>
+      </p>
+    </div>
+
+    <textarea id="importData" placeholder="Paste data here..."></textarea>
+
+    <div style="margin-top:12px">
+      <label><input type="checkbox" id="appendMode"> Append to existing data (don't replace)</label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn primary" onclick="loadSampleData()">⚡ Fetch from Rewire API</button>
+      <button class="btn" onclick="importData()">Import Pasted Data</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───
+let events = [];
+let highlights = {}; // eventId -> colorIndex (1,2,3)
+let currentDay = 'thu';
+let currentColor = 1;
+let searchQuery = '';
+let showClashOnly = false;
+let showHighlightedOnly = false;
+let importFormat = 'csv';
+
+// Time config per day
+const dayConfig = {
+  thu: { label: 'Thursday 9 April', startHour: 12, endHour: 22 },
+  fri: { label: 'Friday 10 April', startHour: 10, endHour: 26 }, // 26 = 2am next day
+  sat: { label: 'Saturday 11 April', startHour: 10, endHour: 29 }, // 29 = 5am next day
+  sun: { label: 'Sunday 12 April', startHour: 10, endHour: 24 }
+};
+
+// Venue zones
+const venueZones = {
+  'Amare - Concertzaal': 'spui', 'Amare - Conservatoriumzaal': 'spui',
+  'Amare - Studio': 'spui', 'Amare - Danstheater': 'spui',
+  'Amare - Jazz I': 'spui', 'Amare - Salsa': 'spui',
+  'Theater aan het Spui': 'spui', 'Nieuwe Kerk': 'spui',
+  'Filmhuis Den Haag': 'spui', 'Subterra': 'spui',
+  'PAARD I': 'grotemarkt', 'PAARD II': 'grotemarkt', 'PAARD': 'grotemarkt',
+  'Koorenhuis': 'grotemarkt', 'Concordia': 'grotemarkt',
+  'Lutherse Kerk': 'grotemarkt', 'Grote Kerk': 'grotemarkt',
+  'Korzo - Zaal': 'grotemarkt', 'Korzo - Studio': 'grotemarkt', 'Korzo': 'grotemarkt',
+  'The Grey Space in the Middle': 'grotemarkt', 'The Grey Space - Basement': 'grotemarkt',
+  'Page Not Found': 'grotemarkt', 'Das Leben am Haverkamp': 'grotemarkt',
+  'Koninklijke Schouwburg': 'museumkwartier', 'West Den Haag': 'museumkwartier'
+};
+
+function getZone(venue) {
+  if (venueZones[venue]) return venueZones[venue];
+  for (const [v, z] of Object.entries(venueZones)) {
+    if (venue.toLowerCase().includes(v.toLowerCase().split(' ')[0])) return z;
+  }
+  return 'other';
+}
+
+function getZoneLabel(zone) {
+  return { spui: 'S', grotemarkt: 'G', museumkwartier: 'M', other: '' }[zone] || '';
+}
+
+// ─── TIME UTILS ───
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return (h < 6 ? h + 24 : h) * 60 + m; // wrap early morning to next day
+}
+
+function minutesToTime(m) {
+  const h = Math.floor(m / 60) % 24;
+  const min = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+// ─── GENERATE EVENT ID ───
+function eventId(e) {
+  // Use index in events array for stability
+  const idx = events.indexOf(e);
+  if (idx >= 0) return 'ev' + idx;
+  // Fallback: hash from key fields
+  const raw = `${e.day}-${e.venue}-${e.start}-${e.artist}`;
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) { h = ((h << 5) - h + raw.charCodeAt(i)) | 0; }
+  return 'ev' + Math.abs(h);
+}
+
+function findEventByEid(eid) {
+  if (eid.startsWith('ev')) {
+    const idx = parseInt(eid.slice(2));
+    if (!isNaN(idx) && events[idx]) return events[idx];
+  }
+  return events.find(e => eventId(e) === eid);
+}
+
+// ─── FIND CLASHES ───
+function findClashes() {
+  const highlighted = events.filter(e => highlights[eventId(e)]);
+  const clashes = [];
+
+  for (let i = 0; i < highlighted.length; i++) {
+    for (let j = i + 1; j < highlighted.length; j++) {
+      const a = highlighted[i], b = highlighted[j];
+      if (a.day !== b.day) continue;
+      const aStart = timeToMinutes(a.start), aEnd = timeToMinutes(a.end);
+      const bStart = timeToMinutes(b.start), bEnd = timeToMinutes(b.end);
+      if (aStart < bEnd && bStart < aEnd) {
+        clashes.push([a, b]);
+      }
+    }
+  }
+  return clashes;
+}
+
+// ─── RENDER ───
+function render() {
+  const config = dayConfig[currentDay];
+  const dayEvents = events.filter(e => e.day === currentDay);
+
+  // Filter by search
+  let filtered = dayEvents;
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = dayEvents.filter(e =>
+      e.artist.toLowerCase().includes(q) ||
+      e.venue.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q)
+    );
+  }
+
+  // Filter to highlighted only
+  if (showHighlightedOnly) {
+    filtered = filtered.filter(e => highlights[eventId(e)]);
+  }
+
+  // Get venues for this day (from filtered set when in highlight mode)
+  const venueSource = showHighlightedOnly ? filtered : dayEvents;
+  const venueOrder = [...new Set(venueSource.map(e => e.venue))].sort((a, b) => {
+    const za = getZone(a), zb = getZone(b);
+    const zOrder = { spui: 0, grotemarkt: 1, museumkwartier: 2, other: 3 };
+    return (zOrder[za] || 3) - (zOrder[zb] || 3) || a.localeCompare(b);
+  });
+
+  const totalMinutes = (config.endHour - config.startHour) * 60;
+  const pixelsPerMinute = 2.5;
+  const totalWidth = totalMinutes * pixelsPerMinute;
+
+  let html = '';
+
+  // Time header
+  html += '<div class="time-header">';
+  for (let h = config.startHour; h < config.endHour; h++) {
+    const displayH = h % 24;
+    html += `<div class="time-tick" style="width:${60 * pixelsPerMinute}px">${String(displayH).padStart(2, '0')}:00</div>`;
+  }
+  html += '</div>';
+
+  // Grid lines container
+  html += '<div class="grid-lines" style="width:${totalWidth}px">';
+  for (let h = config.startHour; h < config.endHour; h++) {
+    const x = (h - config.startHour) * 60 * pixelsPerMinute;
+    html += `<div class="grid-line hour" style="left:${x}px"></div>`;
+    html += `<div class="grid-line" style="left:${x + 30 * pixelsPerMinute}px"></div>`;
+  }
+  html += '</div>';
+
+  // Venue rows
+  const clashes = findClashes();
+  const clashIds = new Set();
+  clashes.forEach(([a, b]) => { clashIds.add(eventId(a)); clashIds.add(eventId(b)); });
+
+  for (const venue of venueOrder) {
+    const venueEvents = filtered.filter(e => e.venue === venue);
+    if (venueEvents.length === 0) continue; // skip empty venues
+
+    const zone = getZone(venue);
+    const zoneLabel = getZoneLabel(zone);
+
+    html += `<div class="venue-row">`;
+    html += `<div class="venue-label">${venue}${zoneLabel ? `<span class="zone-tag zone-${zone}">${zoneLabel}</span>` : ''}</div>`;
+    html += `<div class="events-track" style="width:${totalWidth}px">`;
+
+    for (const ev of venueEvents) {
+      const startMin = timeToMinutes(ev.start) - config.startHour * 60;
+      const endMin = timeToMinutes(ev.end) - config.startHour * 60;
+      if (endMin <= 0 || startMin >= totalMinutes) continue; // skip out-of-range
+      const clampedStart = Math.max(0, startMin);
+      const clampedEnd = Math.min(totalMinutes, endMin);
+      const left = clampedStart * pixelsPerMinute;
+      const width = Math.max((clampedEnd - clampedStart) * pixelsPerMinute, 30);
+      const eid = eventId(ev);
+      const hl = highlights[eid] || 0;
+      const isClash = clashIds.has(eid);
+
+      let classes = `event-block cat-${ev.category}`;
+      if (hl) classes += ` highlight-${hl} highlighted`;
+      if (isClash && hl) classes += ` clashing`;
+      if (showClashOnly && !hl) classes += ` dimmed`;
+      if (searchQuery && !ev.artist.toLowerCase().includes(searchQuery.toLowerCase())) {
+        // Don't dim venue matches
+      }
+
+      html += `<div class="${classes}" data-eid="${eid}" 
+        style="left:${left}px; width:${width}px">
+        <div class="event-name">${ev.artist}</div>
+        <div class="event-time">${ev.start}–${ev.end}</div>
+      </div>`;
+    }
+
+    html += '</div></div>';
+  }
+
+  document.getElementById('timetable').innerHTML = html;
+
+  // Update clash bar
+  const highlightedCount = Object.values(highlights).filter(v => v > 0).length;
+  const clashBar = document.getElementById('clashBar');
+  if (highlightedCount > 0) {
+    clashBar.classList.add('visible');
+    document.getElementById('selectedCount').textContent = `${highlightedCount} selected`;
+    document.getElementById('clashCountText').textContent = `${clashes.length} clash${clashes.length !== 1 ? 'es' : ''}`;
+
+    let clashHtml = '';
+    clashes.forEach(([a, b]) => {
+      clashHtml += `<span class="clash-item" onclick="jumpToClash('${a.day}')">${a.artist} ✕ ${b.artist} (${a.day.toUpperCase()})</span> `;
+    });
+    document.getElementById('clashItems').innerHTML = clashHtml;
+  } else {
+    clashBar.classList.remove('visible');
+  }
+
+  // Save state
+  try { localStorage.setItem('rewire2026_highlights', JSON.stringify(highlights)); } catch(e) {}
+}
+
+// ─── TOOLTIP ───
+function showTooltip(event, eid) {
+  const ev = findEventByEid(eid);
+  if (!ev) return;
+  const tt = document.getElementById('tooltip');
+  document.getElementById('ttName').textContent = ev.artist;
+  document.getElementById('ttVenue').textContent = ev.venue;
+  document.getElementById('ttTime').textContent = `${ev.start} – ${ev.end}`;
+  document.getElementById('ttCat').textContent = ev.category;
+  tt.classList.add('visible');
+
+  const rect = (event.target.closest ? event.target.closest('.event-block') : event.target).getBoundingClientRect();
+  let x = rect.right + 8;
+  let y = rect.top;
+  if (x + 320 > window.innerWidth) x = rect.left - 328;
+  if (y + 100 > window.innerHeight) y = window.innerHeight - 110;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+// ─── DETAIL PANEL ───
+let currentDetailEid = null;
+
+function openDetail(eid) {
+  const ev = findEventByEid(eid);
+  if (!ev) return;
+  currentDetailEid = eid;
+  hideTooltip();
+  
+  document.getElementById('detailTitle').textContent = ev.artist;
+  document.getElementById('detailVenue').textContent = ev.venue;
+  
+  const dayLabels = { thu: 'Thursday 9 April', fri: 'Friday 10 April', sat: 'Saturday 11 April', sun: 'Sunday 12 April' };
+  document.getElementById('detailDay').textContent = dayLabels[ev.day] || ev.day;
+  document.getElementById('detailTime').textContent = ev.start + ' – ' + ev.end;
+  
+  const catEl = document.getElementById('detailCat');
+  catEl.textContent = ev.category;
+  catEl.className = 'cat-' + ev.category;
+  catEl.style.cssText = 'font-size:12px; padding:4px 10px; border-radius:4px; text-transform:capitalize';
+  
+  // Build Rewire artist page URL from artist name
+  const slug = (ev.artist || '').toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[&+]/g, '')
+    .replace(/\s*\(.*?\)\s*/g, '')
+    .replace(/\s*'.*?'\s*/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  const link = document.getElementById('detailLink');
+  if (slug) {
+    link.href = 'https://www.rewirefestival.nl/artist/' + slug;
+    link.style.display = 'inline-flex';
+  } else {
+    link.style.display = 'none';
+  }
+  
+  document.getElementById('detailPanel').classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('visible');
+  currentDetailEid = null;
+}
+
+function highlightFromDetail(colorIdx) {
+  if (!currentDetailEid) return;
+  if (colorIdx === 0) {
+    delete highlights[currentDetailEid];
+  } else {
+    highlights[currentDetailEid] = colorIdx;
+  }
+  render();
+}
+
+// ─── HIGHLIGHT ───
+function toggleHighlight(eid) {
+  if (currentColor === 0) {
+    delete highlights[eid];
+  } else {
+    if (highlights[eid] === currentColor) {
+      delete highlights[eid];
+    } else {
+      highlights[eid] = currentColor;
+    }
+  }
+  render();
+}
+
+function clearHighlights() {
+  if (Object.keys(highlights).length > 0 && confirm('Clear all highlighted selections?')) {
+    highlights = {};
+    render();
+  }
+}
+
+function toggleClashOnly() {
+  showClashOnly = !showClashOnly;
+  if (showClashOnly) showHighlightedOnly = false;
+  document.getElementById('btnShowClashes').classList.toggle('primary', showClashOnly);
+  document.getElementById('btnShowHighlighted').classList.remove('primary');
+  render();
+}
+
+function toggleHighlightedOnly() {
+  showHighlightedOnly = !showHighlightedOnly;
+  if (showHighlightedOnly) showClashOnly = false;
+  document.getElementById('btnShowHighlighted').classList.toggle('primary', showHighlightedOnly);
+  document.getElementById('btnShowClashes').classList.remove('primary');
+  render();
+}
+
+function jumpToClash(day) {
+  currentDay = day;
+  document.querySelectorAll('.day-tab').forEach(t => t.classList.toggle('active', t.dataset.day === day));
+  render();
+}
+
+// ─── IMPORT / EXPORT ───
+function openImportModal() {
+  document.getElementById('importModal').classList.add('visible');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('visible');
+}
+
+function setImportFormat(fmt) {
+  importFormat = fmt;
+  document.querySelectorAll('.format-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase() === fmt));
+  document.getElementById('csvHelp').style.display = fmt === 'csv' ? '' : 'none';
+  document.getElementById('jsonHelp').style.display = fmt === 'json' ? '' : 'none';
+}
+
+function importData() {
+  const raw = document.getElementById('importData').value.trim();
+  if (!raw) return;
+
+  const append = document.getElementById('appendMode').checked;
+  let newEvents = [];
+
+  try {
+    if (importFormat === 'json') {
+      newEvents = JSON.parse(raw);
+    } else {
+      const lines = raw.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+      for (const line of lines) {
+        const parts = line.split(',').map(s => s.trim());
+        if (parts.length >= 5) {
+          newEvents.push({
+            day: parts[0].toLowerCase().substring(0, 3),
+            venue: parts[1],
+            start: parts[2],
+            end: parts[3],
+            artist: parts[4],
+            category: (parts[5] || 'music').toLowerCase()
+          });
+        }
+      }
+    }
+
+    if (newEvents.length > 0) {
+      events = append ? [...events, ...newEvents] : newEvents;
+      try { localStorage.setItem('rewire2026_events', JSON.stringify(events)); } catch(e) {}
+      closeImportModal();
+      render();
+      alert(`Imported ${newEvents.length} events!`);
+    } else if (importFormat === 'json') {
+      // Maybe it's a picks export file: { highlights: {...} }
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.highlights && typeof parsed.highlights === 'object') {
+          highlights = parsed.highlights;
+          try { localStorage.setItem('rewire2026_highlights', JSON.stringify(highlights)); } catch(ex) {}
+          closeImportModal();
+          render();
+          alert('Restored ' + Object.keys(parsed.highlights).length + ' picks!');
+          return;
+        }
+      } catch(e2) {}
+      alert('No valid events found. Check the format.');
+    } else {
+      alert('No valid events found. Check the format.');
+    }
+  } catch (e) {
+    alert('Parse error: ' + e.message);
+  }
+}
+
+function exportData() {
+  const data = JSON.stringify({ highlights }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'rewire2026_picks.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function shareLink() {
+  // Encode highlights as compact string: "idx:color,idx:color,..."
+  const pairs = [];
+  for (const [eid, color] of Object.entries(highlights)) {
+    if (color > 0) pairs.push(eid.replace('ev','') + ':' + color);
+  }
+  if (pairs.length === 0) { alert('No picks to share yet!'); return; }
+  const encoded = pairs.join(',');
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const shareUrl = base + '?picks=' + encodeURIComponent(encoded);
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Link copied! ' + pairs.length + ' picks encoded.\n\nAnyone opening this link will see your selections.');
+    }).catch(() => {
+      prompt('Copy this link:', shareUrl);
+    });
+  } else {
+    prompt('Copy this link:', shareUrl);
+  }
+}
+
+function restoreFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const picks = params.get('picks');
+  if (!picks) return false;
+  try {
+    const pairs = picks.split(',');
+    for (const pair of pairs) {
+      const [idx, color] = pair.split(':');
+      if (idx && color) highlights['ev' + idx] = parseInt(color);
+    }
+    return Object.keys(highlights).length > 0;
+  } catch(e) { return false; }
+}
+
+// ─── FETCH FROM REWIRE API ───
+async function loadSampleData() {
+  const btn = document.querySelector('[onclick="loadSampleData()"]');
+  if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+  
+  try {
+    const res = await fetch('https://www.rewirefestival.nl/api/timetable');
+    const raw = await res.json();
+    
+    const venueLookup = {};
+    raw.venues.forEach(v => { venueLookup[v.id] = v.title; });
+    
+    const dayKeys = ['thu','fri','sat','sun'];
+    
+    const converted = raw.events.map(e => {
+      const s = new Date(e.start);
+      const en = new Date(e.end);
+      const dayKey = dayKeys[e.day] || 'fri';
+      const sh = String(s.getUTCHours()).padStart(2,'0');
+      const sm = String(s.getUTCMinutes()).padStart(2,'0');
+      const eh = String(en.getUTCHours()).padStart(2,'0');
+      const em = String(en.getUTCMinutes()).padStart(2,'0');
+      const venue = venueLookup[e.venue] || 'Unknown';
+      const title = (e.timetable_title && e.timetable_title !== false) ? e.timetable_title : e.title;
+      
+      let cat = 'music';
+      const lv = venue.toLowerCase();
+      const lt = (title||'').toLowerCase();
+      if (lv.includes('filmhuis')) cat = 'film';
+      else if (lt.includes('proximity music')) cat = 'installation';
+      else if (lv.includes('west den haag') && !lt.includes('proximity')) cat = 'installation';
+      else if (lt.includes('conversation') || lt.includes('talk') || lt.includes('seminar') || lt.includes('book launch') || lt.includes('workshop') || lt.includes('listening session')) cat = 'talk';
+      else if (lt.includes('echoes from') || lt.includes('deep listening')) cat = 'listening';
+      else if (lv.includes('laak')) cat = 'club';
+      
+      return {
+        day: dayKey, venue, start: sh+':'+sm, end: eh+':'+em,
+        artist: title || e.title, category: cat,
+        plusevent: e.plusevent || false
+      };
+    }).filter(e => e.artist && e.artist !== 'false' && e.artist !== false);
+
+    document.getElementById('importData').value = JSON.stringify(converted, null, 2);
+    setImportFormat('json');
+    if (btn) { btn.textContent = 'Loaded! Click Import →'; btn.disabled = false; }
+    
+    // Auto-import
+    events = converted;
+    try { localStorage.setItem('rewire2026_events', JSON.stringify(events)); } catch(ex) {}
+    closeImportModal();
+    render();
+    alert('Loaded ' + converted.length + ' events from Rewire API!');
+    return;
+  } catch(err) {
+    alert('API fetch failed: ' + err.message + '\nFalling back to sample data.');
+    if (btn) { btn.textContent = 'Load Sample Data'; btn.disabled = false; }
+  }
+  
+  // Fallback sample data
+  const sample = [
+    // THURSDAY 9 APRIL - Opening at Amare
+    { day:'thu', venue:'Amare - Concertzaal', start:'19:30', end:'20:45', artist:'Caterina Barbieri with ONCEIM', category:'music' },
+    { day:'thu', venue:'Amare - Concertzaal', start:'21:15', end:'22:15', artist:'Actress & Suzanne Ciani: Concrète Waves', category:'music' },
+    { day:'thu', venue:'Amare - Danstheater', start:'19:30', end:'20:30', artist:'Caterina Barbieri & MFO', category:'music' },
+
+    // FRIDAY 10 APRIL
+    { day:'fri', venue:'Amare - Concertzaal', start:'19:00', end:'20:15', artist:'Oneohtrix Point Never', category:'music' },
+    { day:'fri', venue:'Amare - Concertzaal', start:'20:45', end:'22:00', artist:'Beverly Glenn-Copeland', category:'music' },
+    { day:'fri', venue:'Amare - Concertzaal', start:'22:30', end:'23:30', artist:'Jim O\'Rourke & Eiko Ishibashi', category:'music' },
+    { day:'fri', venue:'Amare - Conservatoriumzaal', start:'19:15', end:'20:15', artist:'Ash Fure: Animal', category:'music' },
+    { day:'fri', venue:'Amare - Conservatoriumzaal', start:'20:45', end:'21:45', artist:'Supersilent & Lawrence Abu Hamdan', category:'music' },
+    { day:'fri', venue:'Amare - Conservatoriumzaal', start:'22:15', end:'23:15', artist:'Smerz', category:'music' },
+    { day:'fri', venue:'Korzo - Zaal', start:'19:00', end:'19:45', artist:'Cara Tolmie & Rian Treanor', category:'music' },
+    { day:'fri', venue:'Korzo - Zaal', start:'20:15', end:'21:15', artist:'Beatrice Dillon & Explore Ensemble', category:'music' },
+    { day:'fri', venue:'Korzo - Zaal', start:'21:45', end:'22:45', artist:'Armand Hammer', category:'music' },
+    { day:'fri', venue:'Korzo - Zaal', start:'23:15', end:'00:15', artist:'Standing On The Corner', category:'music' },
+    { day:'fri', venue:'Korzo - Studio', start:'19:00', end:'19:45', artist:'Sijya', category:'music' },
+    { day:'fri', venue:'Korzo - Studio', start:'20:15', end:'21:00', artist:'Park Jiha', category:'music' },
+    { day:'fri', venue:'Korzo - Studio', start:'21:30', end:'22:30', artist:'Malibu', category:'music' },
+    { day:'fri', venue:'Korzo - Studio', start:'23:00', end:'00:00', artist:'Laurel Halo', category:'music' },
+    { day:'fri', venue:'PAARD I', start:'22:00', end:'23:00', artist:'Asian Dope Boys', category:'music' },
+    { day:'fri', venue:'PAARD I', start:'23:30', end:'00:30', artist:'My New Band Believe', category:'music' },
+    { day:'fri', venue:'PAARD I', start:'01:00', end:'02:30', artist:'Blawan (live)', category:'club' },
+    { day:'fri', venue:'PAARD II', start:'22:00', end:'23:00', artist:'Jespfur', category:'music' },
+    { day:'fri', venue:'PAARD II', start:'23:30', end:'01:00', artist:'Aaron Dilloway', category:'music' },
+    { day:'fri', venue:'Koorenhuis', start:'19:00', end:'20:00', artist:'Sacred Lodge', category:'music' },
+    { day:'fri', venue:'Koorenhuis', start:'20:30', end:'21:30', artist:'Milkweed', category:'music' },
+    { day:'fri', venue:'Koorenhuis', start:'22:00', end:'23:00', artist:'Acopia', category:'music' },
+    { day:'fri', venue:'Lutherse Kerk', start:'19:15', end:'20:15', artist:'Ensemble Klang: OCCAM DELTA XXIII', category:'music' },
+    { day:'fri', venue:'Lutherse Kerk', start:'20:45', end:'21:45', artist:'Thomas Ankersmit', category:'music' },
+    { day:'fri', venue:'Lutherse Kerk', start:'22:15', end:'23:15', artist:'Moritz von Oswald', category:'music' },
+    { day:'fri', venue:'Nieuwe Kerk', start:'19:00', end:'20:00', artist:'KMRU & Nick Verstand: As Nature', category:'music' },
+    { day:'fri', venue:'Concordia', start:'22:00', end:'23:00', artist:'Eraserhead x Xiu Xiu', category:'music' },
+    { day:'fri', venue:'Concordia', start:'23:30', end:'00:30', artist:'TBA', category:'music' },
+    { day:'fri', venue:'Subterra', start:'21:00', end:'23:00', artist:'Mika Oki: Echoes from the Core', category:'listening' },
+    { day:'fri', venue:'Theater aan het Spui', start:'19:00', end:'20:30', artist:'Chunky Move: U>N>I>T>E>D', category:'music' },
+    { day:'fri', venue:'Theater aan het Spui', start:'21:30', end:'23:00', artist:'Chunky Move: U>N>I>T>E>D (2nd show)', category:'music' },
+    { day:'fri', venue:'Filmhuis Den Haag', start:'14:00', end:'16:00', artist:'Film Programme', category:'film' },
+    { day:'fri', venue:'Filmhuis Den Haag', start:'16:30', end:'18:00', artist:'Film Programme', category:'film' },
+    { day:'fri', venue:'The Grey Space in the Middle', start:'13:00', end:'17:00', artist:'Context Programme / Talks', category:'talk' },
+
+    // SATURDAY 11 APRIL
+    { day:'sat', venue:'Amare - Concertzaal', start:'19:00', end:'20:15', artist:'Kim Gordon', category:'music' },
+    { day:'sat', venue:'Amare - Concertzaal', start:'20:45', end:'22:00', artist:'Tortoise', category:'music' },
+    { day:'sat', venue:'Amare - Concertzaal', start:'22:30', end:'23:30', artist:'Sumac & Moor Mother', category:'music' },
+    { day:'sat', venue:'Amare - Conservatoriumzaal', start:'19:15', end:'20:15', artist:'Civilistjävel! & Mayssa Jallad', category:'music' },
+    { day:'sat', venue:'Amare - Conservatoriumzaal', start:'20:45', end:'21:45', artist:'Juana Molina', category:'music' },
+    { day:'sat', venue:'Amare - Conservatoriumzaal', start:'22:15', end:'23:15', artist:'Immaculate Deception Of History', category:'music' },
+    { day:'sat', venue:'Korzo - Zaal', start:'19:00', end:'19:45', artist:'XTC in the XIV', category:'music' },
+    { day:'sat', venue:'Korzo - Zaal', start:'20:15', end:'21:00', artist:'Violeta García', category:'music' },
+    { day:'sat', venue:'Korzo - Zaal', start:'21:30', end:'22:30', artist:'YATTA', category:'music' },
+    { day:'sat', venue:'Korzo - Zaal', start:'23:00', end:'00:00', artist:'GEZAN', category:'music' },
+    { day:'sat', venue:'Korzo - Studio', start:'19:00', end:'20:00', artist:'Clément Vercelletto: L\'Engoulevent', category:'music' },
+    { day:'sat', venue:'Korzo - Studio', start:'20:30', end:'21:30', artist:'Abdullah Miniawy Trio', category:'music' },
+    { day:'sat', venue:'Korzo - Studio', start:'22:00', end:'23:00', artist:'Mark Fell & Okkyung Lee', category:'music' },
+    { day:'sat', venue:'PAARD I', start:'22:00', end:'23:00', artist:'The Bug', category:'music' },
+    { day:'sat', venue:'PAARD I', start:'23:30', end:'01:00', artist:'Apparitions', category:'club' },
+    { day:'sat', venue:'PAARD I', start:'01:30', end:'03:00', artist:'Batu b2b JASSS', category:'club' },
+    { day:'sat', venue:'PAARD II', start:'22:30', end:'00:00', artist:'MOESHA 13', category:'club' },
+    { day:'sat', venue:'PAARD II', start:'00:30', end:'02:00', artist:'Chinnamasta', category:'club' },
+    { day:'sat', venue:'Koorenhuis', start:'19:00', end:'20:00', artist:'Floris Vanhoof: Antenna', category:'installation' },
+    { day:'sat', venue:'Koorenhuis', start:'20:30', end:'21:30', artist:'ROLROLROL', category:'music' },
+    { day:'sat', venue:'Koorenhuis', start:'22:00', end:'23:00', artist:'Meetsysteem & Band', category:'music' },
+    { day:'sat', venue:'Lutherse Kerk', start:'19:15', end:'20:15', artist:'Alejandra Cárdenas: A Body Like Home', category:'music' },
+    { day:'sat', venue:'Lutherse Kerk', start:'20:45', end:'21:45', artist:'Polina Medvedeva', category:'music' },
+    { day:'sat', venue:'Concordia', start:'22:00', end:'23:00', artist:'Lol K', category:'music' },
+    { day:'sat', venue:'Concordia', start:'23:30', end:'01:00', artist:'mi-el', category:'club' },
+    { day:'sat', venue:'Grote Kerk', start:'19:00', end:'20:30', artist:'Beverly Glenn-Copeland (conversation)', category:'talk' },
+    { day:'sat', venue:'The Grey Space in the Middle', start:'13:00', end:'17:00', artist:'Context Programme / Talks', category:'talk' },
+    { day:'sat', venue:'Filmhuis Den Haag', start:'14:00', end:'16:00', artist:'Film Programme', category:'film' },
+    { day:'sat', venue:'Filmhuis Den Haag', start:'16:30', end:'18:00', artist:'Film: Powwow People (Sky Hopinka)', category:'film' },
+    { day:'sat', venue:'Das Leben am Haverkamp', start:'23:00', end:'04:00', artist:'Rewire x Laak Club Night', category:'club' },
+
+    // SUNDAY 12 APRIL
+    { day:'sun', venue:'Amare - Concertzaal', start:'15:00', end:'16:30', artist:'Einstürzende Neubauten', category:'music' },
+    { day:'sun', venue:'Amare - Concertzaal', start:'17:00', end:'18:00', artist:'Koninklijke Schouwburg Programme', category:'music' },
+    { day:'sun', venue:'Amare - Concertzaal', start:'19:00', end:'20:15', artist:'Closing Concert', category:'music' },
+    { day:'sun', venue:'Amare - Conservatoriumzaal', start:'15:00', end:'16:00', artist:'Sunday Afternoon Concert', category:'music' },
+    { day:'sun', venue:'Amare - Conservatoriumzaal', start:'16:30', end:'17:30', artist:'Sunday Programme', category:'music' },
+    { day:'sun', venue:'Amare - Conservatoriumzaal', start:'18:00', end:'19:00', artist:'Sunday Programme', category:'music' },
+    { day:'sun', venue:'Amare - Studio', start:'14:00', end:'15:00', artist:'Khrystyna Kirik & Emma Rubikaite-Milasiute (sensory-sensitive)', category:'music' },
+    { day:'sun', venue:'Korzo - Zaal', start:'15:00', end:'16:00', artist:'Sunday Concert', category:'music' },
+    { day:'sun', venue:'Korzo - Zaal', start:'16:30', end:'17:30', artist:'Sunday Concert', category:'music' },
+    { day:'sun', venue:'Korzo - Zaal', start:'18:00', end:'19:00', artist:'Sunday Concert', category:'music' },
+    { day:'sun', venue:'Koninklijke Schouwburg', start:'14:00', end:'18:00', artist:'Proximity Music: The Ongoing Hum', category:'installation' },
+    { day:'sun', venue:'The Grey Space in the Middle', start:'13:00', end:'17:00', artist:'Context Programme', category:'talk' },
+    { day:'sun', venue:'Filmhuis Den Haag', start:'14:00', end:'16:00', artist:'Film Programme', category:'film' },
+  ];
+
+  document.getElementById('importData').value = JSON.stringify(sample, null, 2);
+  setImportFormat('json');
+}
+
+const EMBEDDED_EVENTS = [
+{"day":"sun","venue":"Amare \u2013 Concertzaal","start":"19:50","end":"21:20","artist":"Einst\u00fcrzende Neubauten","category":"music"},
+{"day":"thu","venue":"Amare \u2013 Concertzaal","start":"20:15","end":"21:15","artist":"Actress & Suzanne Ciani 'Concr\u00e8te Waves'","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Concertzaal","start":"17:00","end":"18:00","artist":"Tortoise","category":"music"},
+{"day":"sun","venue":"Koninklijke Schouwburg","start":"14:30","end":"15:15","artist":"Beatrice Dillon & Explore Ensemble","category":"music"},
+{"day":"fri","venue":"Lutherse Kerk","start":"20:15","end":"21:00","artist":"Flur","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"00:15","end":"01:15","artist":"KAVARI (live AV)","category":"music"},
+{"day":"fri","venue":"PAARD I","start":"17:00","end":"17:50","artist":"Fine","category":"music"},
+{"day":"sun","venue":"Lutherse Kerk","start":"20:15","end":"21:00","artist":"Civilistj\u00e4vel! & Mayssa Jallad","category":"music"},
+{"day":"sat","venue":"Concordia","start":"22:30","end":"23:30","artist":"ex_libris","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Basement","start":"20:15","end":"21:00","artist":"La Rat","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"17:00","end":"17:45","artist":"Purelink with Mika Oki","category":"music"},
+{"day":"sat","venue":"Grote Kerk","start":"18:00","end":"18:45","artist":"Joanne Robertson & Oliver Coates","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"20:10","end":"21:00","artist":"Los Thuthanaka","category":"music"},
+{"day":"sun","venue":"PAARD II","start":"15:30","end":"16:15","artist":"Joshua Chuquimia Crampton","category":"music"},
+{"day":"sat","venue":"Koninklijke Schouwburg","start":"12:30","end":"13:15","artist":"Ash Fure 'Animal'","category":"music"},
+{"day":"fri","venue":"Lutherse Kerk","start":"18:15","end":"19:00","artist":"JJJJJerome Ellis","category":"music"},
+{"day":"sat","venue":"Koorenhuis","start":"19:00","end":"19:45","artist":"Dumama","category":"music"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 1","start":"18:20","end":"19:05","artist":"feeo","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Zaal","start":"16:55","end":"17:40","artist":"Katalin Ladik & Svetlana Mara\u0161","category":"music"},
+{"day":"fri","venue":"PAARD I","start":"22:30","end":"23:30","artist":"Nihiloxica","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"22:30","end":"23:15","artist":"Cara Tolmie & Rian Treanor","category":"music"},
+{"day":"sat","venue":"Lutherse Kerk","start":"17:35","end":"18:30","artist":"Hayden Pedigo (solo)","category":"music"},
+{"day":"sun","venue":"Lutherse Kerk","start":"15:15","end":"16:00","artist":"Hayden Pedigo feat. Ragazze Quartet","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Danstheater","start":"20:05","end":"20:55","artist":"Eraserhead x Xiu Xiu","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"20:10","end":"21:10","artist":"Tracey","category":"music"},
+{"day":"sun","venue":"PAARD I","start":"13:00","end":"14:00","artist":"Juana Molina","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Concertzaal","start":"16:30","end":"17:30","artist":"Beverly Glenn-Copeland & Elizabeth Copeland","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Danstheater","start":"18:20","end":"19:10","artist":"Jim O'Rourke & Eiko Ishibashi","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Concertzaal","start":"18:55","end":"19:45","artist":"Sumac & Moor Mother","category":"music"},
+{"day":"sat","venue":"Lutherse Kerk","start":"21:00","end":"21:50","artist":"ganavya","category":"music"},
+{"day":"fri","venue":"PAARD I","start":"21:10","end":"22:00","artist":"Armand Hammer","category":"music"},
+{"day":"fri","venue":"Lutherse Kerk","start":"21:45","end":"22:30","artist":"Park Jiha","category":"music"},
+{"day":"fri","venue":"PAARD I","start":"19:10","end":"20:00","artist":"Smerz","category":"music"},
+{"day":"sat","venue":"Concordia","start":"18:00","end":"18:45","artist":"KUNTARI","category":"music"},
+{"day":"sun","venue":"Lutherse Kerk","start":"19:00","end":"19:45","artist":"Thomas Ankersmit 'The Tcherepnin Series'","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"23:15","end":"00:15","artist":"Blawan (live)","category":"music"},
+{"day":"fri","venue":"Koorenhuis","start":"19:15","end":"20:00","artist":"Milkweed","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 1","start":"15:15","end":"16:00","artist":"Apparitions","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Concertzaal","start":"21:45","end":"22:45","artist":"Oneohtrix Point Never","category":"music"},
+{"day":"fri","venue":"Lutherse Kerk","start":"23:05","end":"23:50","artist":"Ra\u00fcl Refree & Ni\u00f1o de Elche","category":"music"},
+{"day":"sat","venue":"Nieuwe Kerk","start":"17:45","end":"18:30","artist":"Alejandra C\u00e1rdenas 'A Body Like a Home'","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"19:00","end":"19:50","artist":"james K","category":"music"},
+{"day":"thu","venue":"Amare \u2013 Concertzaal","start":"18:15","end":"18:50","artist":"Caterina Barbieri with ONCEIM","category":"music"},
+{"day":"thu","venue":"Amare \u2013 Concertzaal","start":"19:05","end":"19:50","artist":"Caterina Barbieri & MFO","category":"music"},
+{"day":"sat","venue":"Grote Kerk","start":"21:15","end":"22:00","artist":"Malibu","category":"music"},
+{"day":"sat","venue":"Lutherse Kerk","start":"19:15","end":"20:00","artist":"Hilary Woods","category":"music"},
+{"day":"fri","venue":"Koorenhuis","start":"21:10","end":"22:00","artist":"WRENS","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 1","start":"16:00","end":"17:00","artist":"\u00d8KSE feat. billy woods","category":"music"},
+{"day":"sun","venue":"Amare \u2013 Concertzaal","start":"17:50","end":"18:50","artist":"Supersilent & Lawrence Abu Hamdan","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Concertzaal","start":"21:15","end":"22:30","artist":"Kim Gordon","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"18:00","end":"18:50","artist":"Acopia","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"18:00","end":"19:00","artist":"weed420","category":"music"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 1","start":"16:00","end":"16:45","artist":"Dagmar Zuniga","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Danstheater","start":"15:40","end":"16:35","artist":"Chunky Move 'U>N>I>T>E>D'","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Danstheater","start":"20:30","end":"21:25","artist":"Chunky Move 'U>N>I>T>E>D'","category":"music"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"19:30","end":"20:15","artist":"Everything Is Psychedelic","category":"music"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"20:45","end":"21:30","artist":"Sacred Lodge","category":"music"},
+{"day":"sat","venue":"Nieuwe Kerk","start":"15:10","end":"15:55","artist":"Suzan Peeters","category":"music"},
+{"day":"sun","venue":"Lutherse Kerk","start":"13:30","end":"14:15","artist":"Eliana Glass","category":"music"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 1","start":"23:00","end":"00:00","artist":"\u2208Y\u220b + C.O.L.O","category":"music"},
+{"day":"sun","venue":"Concordia","start":"18:15","end":"19:00","artist":"RAKTA","category":"music"},
+{"day":"sat","venue":"Koorenhuis","start":"21:15","end":"22:00","artist":"RAKTA & Mette Rasmussen","category":"music"},
+{"day":"fri","venue":"Grote Kerk","start":"20:15","end":"21:00","artist":"Drew McDowall & Pedro Maia","category":"music"},
+{"day":"sat","venue":"Koorenhuis","start":"17:00","end":"17:45","artist":"Stemeseder Lillinger","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"17:40","end":"18:25","artist":"Sombat Simla","category":"music"},
+{"day":"sat","venue":"Lutherse Kerk","start":"23:00","end":"23:45","artist":"Sary Moussa Trio","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Studio","start":"19:50","end":"20:35","artist":"Susu Laroche","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"21:05","end":"21:50","artist":"Elischa Heller","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"19:55","end":"20:45","artist":"Raisa K","category":"music"},
+{"day":"sun","venue":"Koorenhuis","start":"17:00","end":"17:45","artist":"Jennifer Walton","category":"music"},
+{"day":"sun","venue":"Koninklijke Schouwburg","start":"12:30","end":"13:15","artist":"Mark Fell & Okkyung Lee","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Zaal","start":"22:00","end":"22:45","artist":"HxH","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 2","start":"16:00","end":"17:30","artist":"S\u00f3l Ey & Modelo62 'Becoming'","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 2","start":"18:30","end":"20:00","artist":"S\u00f3l Ey & Modelo62 'Becoming'","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 1","start":"22:45","end":"23:30","artist":"My New Band Believe","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Danstheater","start":"17:50","end":"18:35","artist":"Laurel Halo & Julian Charri\u00e8re 'Midnight Zone'","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"22:00","end":"22:50","artist":"Shapednoise & Sevi Iko D\u00f8mochevsky 'Absurd Matter Continuum'","category":"music"},
+{"day":"sun","venue":"Koninklijke Schouwburg","start":"16:00","end":"16:50","artist":"KMRU & Nick Verstand 'As Nature'","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 1","start":"17:45","end":"18:30","artist":"Aaron Dilloway","category":"music"},
+{"day":"sun","venue":"PAARD II","start":"14:00","end":"14:45","artist":"Aaron Dilloway","category":"music"},
+{"day":"sun","venue":"PAARD II","start":"12:15","end":"13:00","artist":"Leila Bordreuil","category":"music"},
+{"day":"sat","venue":"Amare \u2013  Studio","start":"16:00","end":"00:00","artist":"Asian Dope Boys 'PHYSIS'","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Zaal","start":"19:05","end":"19:45","artist":"Natasha Pirard","category":"music"},
+{"day":"sun","venue":"Korzo \u2013 Zaal","start":"13:00","end":"14:00","artist":"Zeno van den Broek, Les Percussions de Strasbourg & HIIIT 'Ways of [ ]'","category":"music"},
+{"day":"fri","venue":"Nieuwe Kerk","start":"18:20","end":"19:05","artist":"Joachim Badenhorst's Youran","category":"music"},
+{"day":"sat","venue":"Amare \u2013 Danstheater","start":"15:00","end":"15:45","artist":"The Silver Thread","category":"music"},
+{"day":"sun","venue":"Concordia","start":"16:15","end":"17:00","artist":"SANAM","category":"music"},
+{"day":"sun","venue":"PAARD I","start":"14:45","end":"15:30","artist":"Immaculate Deception Of History (Moor Mother & Hieroglyphic Being)","category":"music"},
+{"day":"sun","venue":"Korzo \u2013 Zaal","start":"15:00","end":"15:40","artist":"Berlinde Deman","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"16:15","end":"17:00","artist":"FRANKIE & Kelman Duran","category":"music"},
+{"day":"fri","venue":"Koorenhuis","start":"17:10","end":"18:00","artist":"Devon Rexi meets John T. Gast","category":"music"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 2","start":"16:45","end":"18:00","artist":"Polina Medvedeva & Andreas K\u00fchne 'Facing the Spills'","category":"music"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 2","start":"19:10","end":"20:25","artist":"Polina Medvedeva & Andreas K\u00fchne 'Facing the Spills'","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"21:15","end":"22:00","artist":"WaqWaq Kingdom feat. VJ Kalma 'Amanogawa \u5929\u306e\u5ddd'","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"16:15","end":"17:00","artist":"Kee Avil","category":"music"},
+{"day":"sun","venue":"Amare \u2013  Studio","start":"13:00","end":"13:45","artist":"Khrystyna Kirik & Emma Rubikaite-Milasiute 'Biophilic Vision'","category":"music"},
+{"day":"fri","venue":"Das Leben am Haverkamp","start":"10:00","end":"17:00","artist":"Felix Bell, Gaia D'Arrigo & Nuno Lobo 'What's left speaks'","category":"installation"},
+{"day":"sat","venue":"Das Leben am Haverkamp","start":"10:00","end":"17:00","artist":"Felix Bell, Gaia D'Arrigo & Nuno Lobo 'What's left speaks'","category":"installation"},
+{"day":"sun","venue":"Das Leben am Haverkamp","start":"10:00","end":"17:00","artist":"Felix Bell, Gaia D'Arrigo & Nuno Lobo 'What's left speaks'","category":"installation"},
+{"day":"fri","venue":"Concordia","start":"21:15","end":"22:00","artist":"Valentina Magaletti & YPY","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"16:00","end":"16:45","artist":"Ouri","category":"music"},
+{"day":"sun","venue":"Koorenhuis","start":"15:15","end":"16:00","artist":"Ouri","category":"music"},
+{"day":"fri","venue":"Concordia","start":"19:45","end":"20:30","artist":"By Storm","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Studio","start":"21:30","end":"22:15","artist":"Hulubalang","category":"music"},
+{"day":"sat","venue":"Theater aan het Spui \u2013 Zaal 1","start":"20:05","end":"20:50","artist":"Arnold Dreyblatt & Horse Lords","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Zaal","start":"20:15","end":"21:00","artist":"Jessica Ekomane","category":"music"},
+{"day":"fri","venue":"Grote Kerk","start":"18:05","end":"19:05","artist":"Moritz von Oswald & The Hague Vocal Ensemble 'Silencio'","category":"music"},
+{"day":"sun","venue":"PAARD I","start":"16:00","end":"17:00","artist":"The Bug & Dis Fig","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Basement","start":"00:00","end":"02:00","artist":"NVST","category":"music"},
+{"day":"sat","venue":"Concordia","start":"20:10","end":"20:55","artist":"Colleen","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 2","start":"15:00","end":"15:45","artist":"Colleen","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 1","start":"14:15","end":"15:00","artist":"33","category":"music"},
+{"day":"sun","venue":"Koorenhuis","start":"19:15","end":"20:15","artist":"AWICHAS","category":"music"},
+{"day":"fri","venue":"PAARD I","start":"23:30","end":"01:30","artist":"Kode9 b2b Deena Abdelwahed","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Basement","start":"21:30","end":"22:15","artist":"Mammo (live)","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Studio","start":"18:10","end":"18:55","artist":"Bby Eco","category":"music"},
+{"day":"sun","venue":"Lutherse Kerk","start":"17:15","end":"18:15","artist":"Cello Octet Amsterdam feat. Shishani & Moor Mother 'Borrowed Time'","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"23:30","end":"00:30","artist":"State OFFF 'Umzimba'","category":"music"},
+{"day":"sat","venue":"Concordia","start":"16:00","end":"16:45","artist":"Standing On The Corner","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 1","start":"12:30","end":"13:15","artist":"Standing On The Corner","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Concertzaal","start":"19:25","end":"20:10","artist":"Sam Slater & guests 'Lunng'","category":"music"},
+{"day":"thu","venue":"Pulchri Studio","start":"14:00","end":"18:00","artist":"Proximity Music: Aernoudt Jacobs 'Humming the Ubique'","category":"installation"},
+{"day":"fri","venue":"Pulchri Studio","start":"10:00","end":"18:00","artist":"Proximity Music: Aernoudt Jacobs 'Humming the Ubique'","category":"installation"},
+{"day":"sat","venue":"Pulchri Studio","start":"10:00","end":"18:00","artist":"Proximity Music: Aernoudt Jacobs 'Humming the Ubique'","category":"installation"},
+{"day":"sun","venue":"Pulchri Studio","start":"10:00","end":"18:00","artist":"Proximity Music: Aernoudt Jacobs 'Humming the Ubique'","category":"installation"},
+{"day":"thu","venue":"Amare \u2013 Swing","start":"14:00","end":"18:00","artist":"Proximity Music: Ana\u00efs Lossouarn 'De C\u0153ur En Choeurs'","category":"installation"},
+{"day":"fri","venue":"Amare \u2013 Swing","start":"10:00","end":"18:00","artist":"Proximity Music: Ana\u00efs Lossouarn 'De C\u0153ur En Choeurs'","category":"installation"},
+{"day":"sat","venue":"Amare \u2013 Swing","start":"10:00","end":"18:00","artist":"Proximity Music: Ana\u00efs Lossouarn 'De C\u0153ur En Choeurs'","category":"installation"},
+{"day":"sun","venue":"Amare \u2013 Swing","start":"10:00","end":"18:00","artist":"Proximity Music: Ana\u00efs Lossouarn 'De C\u0153ur En Choeurs'","category":"installation"},
+{"day":"thu","venue":"Duitse Kerk","start":"14:00","end":"18:00","artist":"Proximity Music: Floris Vanhoof 'Antenna'","category":"installation"},
+{"day":"fri","venue":"Duitse Kerk","start":"10:00","end":"18:00","artist":"Proximity Music: Floris Vanhoof 'Antenna'","category":"installation"},
+{"day":"sat","venue":"Duitse Kerk","start":"10:00","end":"18:00","artist":"Proximity Music: Floris Vanhoof 'Antenna'","category":"installation"},
+{"day":"sun","venue":"Duitse Kerk","start":"10:00","end":"18:00","artist":"Proximity Music: Floris Vanhoof 'Antenna'","category":"installation"},
+{"day":"thu","venue":"West Den Haag \u2013 Auditorium","start":"14:00","end":"18:00","artist":"Proximity Music: Johannes Kreidler 'Jet Whistles / The Grand Exhalation'","category":"installation"},
+{"day":"fri","venue":"West Den Haag \u2013 Auditorium","start":"10:00","end":"18:00","artist":"Proximity Music: Johannes Kreidler 'Jet Whistles / The Grand Exhalation'","category":"installation"},
+{"day":"sat","venue":"West Den Haag \u2013 Auditorium","start":"10:00","end":"18:00","artist":"Proximity Music: Johannes Kreidler 'Jet Whistles / The Grand Exhalation'","category":"installation"},
+{"day":"sun","venue":"West Den Haag \u2013 Auditorium","start":"10:00","end":"18:00","artist":"Proximity Music: Johannes Kreidler 'Jet Whistles / The Grand Exhalation'","category":"installation"},
+{"day":"thu","venue":"Paleiskerk","start":"14:00","end":"18:00","artist":"Proximity Music: Koenraad de Groot 'The Colour of Chameleons'","category":"installation"},
+{"day":"fri","venue":"Paleiskerk","start":"10:00","end":"18:00","artist":"Proximity Music: Koenraad de Groot 'The Colour of Chameleons'","category":"installation"},
+{"day":"sat","venue":"Paleiskerk","start":"10:00","end":"18:00","artist":"Proximity Music: Koenraad de Groot 'The Colour of Chameleons'","category":"installation"},
+{"day":"sun","venue":"Paleiskerk","start":"10:00","end":"18:00","artist":"Proximity Music: Koenraad de Groot 'The Colour of Chameleons'","category":"installation"},
+{"day":"thu","venue":"Pulchri Studio II","start":"14:00","end":"18:00","artist":"Proximity Music: Lena Kuzmich 'Photosynthesizer'","category":"installation"},
+{"day":"fri","venue":"Pulchri Studio II","start":"10:00","end":"18:00","artist":"Proximity Music: Lena Kuzmich 'Photosynthesizer'","category":"installation"},
+{"day":"sat","venue":"Pulchri Studio II","start":"10:00","end":"18:00","artist":"Proximity Music: Lena Kuzmich 'Photosynthesizer'","category":"installation"},
+{"day":"sun","venue":"Pulchri Studio II","start":"10:00","end":"18:00","artist":"Proximity Music: Lena Kuzmich 'Photosynthesizer'","category":"installation"},
+{"day":"thu","venue":"Quartair","start":"14:00","end":"18:00","artist":"Proximity Music: Mariska de Groot 'BROM'","category":"installation"},
+{"day":"fri","venue":"Quartair","start":"10:00","end":"18:00","artist":"Proximity Music: Mariska de Groot 'BROM'","category":"installation"},
+{"day":"sat","venue":"Quartair","start":"10:00","end":"18:00","artist":"Proximity Music: Mariska de Groot 'BROM'","category":"installation"},
+{"day":"sun","venue":"Quartair","start":"10:00","end":"18:00","artist":"Proximity Music: Mariska de Groot 'BROM'","category":"installation"},
+{"day":"sun","venue":"Korzo \u2013 Studio","start":"14:05","end":"14:50","artist":"M ALBERTO 'RADIO VIT\u00d3'","category":"music"},
+{"day":"sat","venue":"Laak","start":"01:00","end":"03:00","artist":"Nono Gigsta","category":"club"},
+{"day":"sat","venue":"Laak","start":"21:00","end":"23:00","artist":"Dim Garden","category":"club"},
+{"day":"fri","venue":"Korzo \u2013 Zaal","start":"22:20","end":"23:05","artist":"Cerys Hafana","category":"music"},
+{"day":"sat","venue":"Laak","start":"03:00","end":"05:00","artist":"OK Williams","category":"club"},
+{"day":"sat","venue":"Nieuwe Kerk","start":"20:05","end":"20:50","artist":"XTC in the XIV","category":"music"},
+{"day":"sun","venue":"Concordia","start":"12:15","end":"13:00","artist":"Ugn\u0117 Uma & Pavel Milyakov","category":"music"},
+{"day":"sat","venue":"Laak","start":"23:00","end":"01:00","artist":"Buttechno b2b Torus","category":"club"},
+{"day":"fri","venue":"Korzo \u2013 Zaal","start":"17:20","end":"18:05","artist":"Cl\u00e9ment Vercelletto 'L'Engoulevent'","category":"music"},
+{"day":"fri","venue":"PAARD II","start":"23:00","end":"00:00","artist":"Nazar","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Basement","start":"22:30","end":"00:00","artist":"Jasm\u00edn","category":"music"},
+{"day":"sat","venue":"PAARD II","start":"00:30","end":"02:30","artist":"mi-el","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Zaal","start":"20:45","end":"21:30","artist":"Violeta Garc\u00eda","category":"music"},
+{"day":"fri","venue":"Nieuwe Kerk","start":"20:30","end":"21:15","artist":"Abdullah Miniawy Trio","category":"music"},
+{"day":"fri","venue":"Nieuwe Kerk","start":"15:50","end":"16:30","artist":"Ensemble Klang 'OCCAM DELTA XXIII by \u00c9liane Radigue & Carol Robinson'","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"19:20","end":"20:05","artist":"Jespfur","category":"music"},
+{"day":"sun","venue":"Korzo \u2013 Studio","start":"15:50","end":"16:35","artist":"Jespfur","category":"music"},
+{"day":"fri","venue":"Concordia","start":"18:10","end":"19:00","artist":"GEZAN","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Zaal","start":"18:30","end":"19:15","artist":"DeForrest Brown Jr. 'Synoptic Audio'","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"22:45","end":"23:45","artist":"Speaker Music","category":"music"},
+{"day":"sat","venue":"Koninklijke Schouwburg","start":"13:45","end":"14:30","artist":"Lucy Railton with Charlie Hope & Rebecca Salvadori 'Not A Word From Me'","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"00:15","end":"02:15","artist":"Batu b2b JASSS","category":"music"},
+{"day":"sun","venue":"Koorenhuis","start":"13:15","end":"14:00","artist":"Meetsysteem & Band","category":"music"},
+{"day":"sun","venue":"Korzo \u2013 Studio","start":"17:30","end":"18:15","artist":"Tony Bontana","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 2","start":"17:00","end":"17:45","artist":"ROLROLROL","category":"music"},
+{"day":"fri","venue":"Korzo \u2013 Studio","start":"22:45","end":"01:00","artist":"Dirtydms b2b Helmond Lang","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Basement","start":"19:00","end":"19:45","artist":"Sijya","category":"music"},
+{"day":"sat","venue":"PAARD I","start":"22:10","end":"23:00","artist":"Slikback feat. maltdisney & Tasya 'Friction' (live AV)","category":"music"},
+{"day":"sun","venue":"Theater aan het Spui \u2013 Zaal 2","start":"13:20","end":"14:05","artist":"YATTA","category":"music"},
+{"day":"sun","venue":"Korzo \u2013 Zaal","start":"16:45","end":"17:25","artist":"Mark IJzerman 'Flounder Maps'","category":"music"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"22:00","end":"23:00","artist":"MOESHA 13","category":"music"},
+{"day":"sun","venue":"Concordia","start":"14:20","end":"15:05","artist":"Herbert & Momoko","category":"music"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"01:00","end":"03:00","artist":"Yb3L","category":"music"},
+{"day":"sat","venue":"Korzo \u2013 Studio","start":"23:45","end":"01:00","artist":"Pebblle","category":"music"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"23:00","end":"01:00","artist":"Chinnamasta","category":"music"},
+{"day":"thu","venue":"West Den Haag","start":"12:00","end":"18:00","artist":"Cevdet Erek '\u0245ccident Grotesque'","category":"installation"},
+{"day":"fri","venue":"West Den Haag","start":"10:00","end":"18:00","artist":"Cevdet Erek '\u0245ccident Grotesque'","category":"installation"},
+{"day":"sat","venue":"West Den Haag","start":"10:00","end":"18:00","artist":"Cevdet Erek '\u0245ccident Grotesque'","category":"installation"},
+{"day":"sun","venue":"West Den Haag","start":"10:00","end":"18:00","artist":"Cevdet Erek '\u0245ccident Grotesque'","category":"installation"},
+{"day":"sun","venue":"Amare \u2013  Studio","start":"15:00","end":"15:30","artist":"Mireia Var\u00f3n Gallofr\u00e9 'Skin Hunger'","category":"music"},
+{"day":"sun","venue":"Amare \u2013  Studio","start":"16:00","end":"16:30","artist":"Mireia Var\u00f3n Gallofr\u00e9 'Skin Hunger'","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 Foyer","start":"10:00","end":"18:00","artist":"Festival hub: Radio WORM x Rewire, food and drinks","category":"other"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Foyer","start":"10:00","end":"18:00","artist":"Festival hub: Radio WORM x Rewire, food and drinks","category":"other"},
+{"day":"sun","venue":"The Grey Space in the Middle \u2013 Foyer","start":"10:00","end":"14:15","artist":"Festival hub: Radio WORM x Rewire, food and drinks","category":"other"},
+{"day":"sun","venue":"The Grey Space in the Middle \u2013 Foyer","start":"15:00","end":"18:00","artist":"Festival hub: Food and drinks","category":"other"},
+{"day":"thu","venue":"West Den Haag \u2013 Alphabetum","start":"12:00","end":"12:30","artist":"Concert: CHORDIAL","category":"music"},
+{"day":"thu","venue":"West Den Haag \u2013 Alphabetum","start":"13:00","end":"14:00","artist":"Conversation: Proximity Music: The Ongoing Hum","category":"talk"},
+{"day":"thu","venue":"West Den Haag \u2013 Alphabetum","start":"15:45","end":"16:30","artist":"Conversation: Concr\u00e8te Waves with Actress and Suzanne Ciani","category":"talk"},
+{"day":"thu","venue":"West Den Haag \u2013 Alphabetum","start":"14:30","end":"15:30","artist":"Conversation and listening session: Staging Sound","category":"talk"},
+{"day":"thu","venue":"West Den Haag \u2013 Basement: Hearing Room","start":"12:00","end":"19:30","artist":"Installation: Remnants of Conversations","category":"installation"},
+{"day":"thu","venue":"West Den Haag \u2013 First Floor: Inner Room","start":"15:30","end":"16:00","artist":"Performance: Sensing Sound","category":"music"},
+{"day":"thu","venue":"West Den Haag \u2013 First Floor: Inner Room","start":"16:30","end":"17:00","artist":"Performance: Sensing Sound","category":"music"},
+{"day":"thu","venue":"West Den Haag \u2013 Entrance (starting point)","start":"12:00","end":"17:00","artist":"Sound walk: In Transit","category":"installation"},
+{"day":"thu","venue":"West Den Haag \u2013 Entrance (starting point)","start":"17:10","end":"17:45","artist":"Who Goes There?: A Procession for Sonic Imaginaries","category":"music"},
+{"day":"thu","venue":"West Den Haag \u2013 Multiple rooms","start":"12:00","end":"16:30","artist":"The Aurality & Orality Sessions #1","category":"talk"},
+{"day":"thu","venue":"West Den Haag \u2013 Multiple rooms","start":"17:00","end":"19:30","artist":"Performance route: Attentive Alleys","category":"music"},
+{"day":"fri","venue":"The Grey Space in the Middle","start":"11:00","end":"11:45","artist":"Conversation: Environmental Sound with KMRU","category":"talk"},
+{"day":"fri","venue":"The Grey Space in the Middle \u2013 RNDR","start":"12:00","end":"13:00","artist":"Workshop: Encounters with Field Recording with KMRU","category":"talk"},
+{"day":"fri","venue":"The Grey Space in the Middle","start":"12:00","end":"12:45","artist":"Conversation: Staging Ritual with Tianzhuo Chen (Asian Dope Boys)","category":"talk"},
+{"day":"fri","venue":"The Grey Space in the Middle","start":"13:00","end":"13:45","artist":"Conversation: Embodied Futures with Antony Hamilton (Chunky Move)","category":"talk"},
+{"day":"fri","venue":"The Grey Space in the Middle","start":"14:15","end":"15:00","artist":"Conversation: Beverly Glenn-Copeland and Elizabeth Copeland","category":"talk"},
+{"day":"fri","venue":"The Grey Space in the Middle","start":"15:15","end":"16:00","artist":"Conversation: Machine Listening with Steve Goodman (Kode9)","category":"talk"},
+{"day":"fri","venue":"Page Not Found","start":"10:30","end":"11:15","artist":"Conversation: Performing Gender in Music Technology","category":"talk"},
+{"day":"fri","venue":"Page Not Found","start":"11:45","end":"12:45","artist":"Conversation and listening session: Sary Moussa and Abed Kobeissy","category":"talk"},
+{"day":"fri","venue":"Page Not Found","start":"13:00","end":"13:45","artist":"Conversation: Resonant Histories with Mayssa Jallad","category":"talk"},
+{"day":"fri","venue":"Page Not Found","start":"14:00","end":"15:30","artist":"Book launch: Further Listening: On Adventurous Music and Sound","category":"talk"},
+{"day":"sat","venue":"The Grey Space in the Middle","start":"11:00","end":"11:50","artist":"Conversation: Radio as an Artistic Space","category":"talk"},
+{"day":"sat","venue":"The Grey Space in the Middle","start":"12:00","end":"13:00","artist":"Conversation: Sonic Testimonies with Lawrence Abu Hamdan","category":"talk"},
+{"day":"sat","venue":"The Grey Space in the Middle","start":"13:30","end":"14:30","artist":"Conversation: Folkloric Iterations with Sacred Lodge, Milkweed and Park Jiha","category":"talk"},
+{"day":"sat","venue":"The Grey Space in the Middle","start":"15:00","end":"15:45","artist":"Conversation: Elements of Sounding with Juana Molina","category":"talk"},
+{"day":"sat","venue":"The Grey Space in the Middle \u2013 Basement","start":"12:00","end":"13:00","artist":"Sound walk: Phones","category":"installation"},
+{"day":"sat","venue":"Page Not Found","start":"11:00","end":"12:00","artist":"Lecture: Drumming X (anarchic magic) by Brandon LaBelle","category":"talk"},
+{"day":"sat","venue":"Page Not Found - Outside","start":"11:00","end":"16:00","artist":"Installation: The Other Family by Brandon LaBelle","category":"installation"},
+{"day":"sat","venue":"Page Not Found","start":"12:30","end":"13:15","artist":"Conversation: Facing the Spills with Polina Medvedeva","category":"talk"},
+{"day":"sat","venue":"Page Not Found","start":"13:30","end":"14:15","artist":"Conversation: A Body Like a Home with Alejandra C\u00e1rdenas","category":"talk"},
+{"day":"sat","venue":"Page Not Found","start":"14:30","end":"15:30","artist":"Reading Aloud: Sonic Perspectives from the Global Souths","category":"talk"},
+{"day":"sun","venue":"Amare - Foyer Spuizijde","start":"11:00","end":"14:00","artist":"Audio walk and performance: Takeaway","category":"installation"},
+{"day":"sun","venue":"The Grey Space in the Middle","start":"11:00","end":"12:00","artist":"Conversation and listening session: Kalponik Rekha","category":"talk"},
+{"day":"sun","venue":"The Grey Space in the Middle","start":"12:15","end":"14:15","artist":"Conversation and listening session: Universal Language: Feedback Static","category":"talk"},
+{"day":"sun","venue":"The Grey Space in the Middle \u2013 Basement","start":"13:00","end":"14:00","artist":"Tactology Lab: MOTION","category":"installation"},
+{"day":"sun","venue":"The Grey Space in the Middle \u2013 Foyer","start":"14:15","end":"15:00","artist":"Conversation: Instrumental Ecologies","category":"talk"},
+{"day":"sun","venue":"Page Not Found","start":"11:00","end":"12:00","artist":"Conversation and listening session: Fragile Minutes","category":"talk"},
+{"day":"sun","venue":"Page Not Found","start":"12:15","end":"13:15","artist":"Conversation: Music Journalism Today and Rewire Reflections launch","category":"talk"},
+{"day":"sun","venue":"Page Not Found","start":"13:30","end":"14:30","artist":"Listening session: Stories to Sleep To","category":"listening"},
+{"day":"sun","venue":"Page Not Found","start":"15:00","end":"16:00","artist":"Book launch: Open Field Listening Station","category":"talk"},
+{"day":"sat","venue":"Filmhuis Den Haag","start":"10:30","end":"12:30","artist":"Film: Canone effimero","category":"film"},
+{"day":"fri","venue":"Filmhuis Den Haag","start":"12:30","end":"14:00","artist":"Film: Joy Boy: A Tribute to Julius Eastman","category":"film"},
+{"day":"sat","venue":"Filmhuis Den Haag","start":"13:30","end":"15:30","artist":"Film: Krakatoa (+Q&A)","category":"film"},
+{"day":"sun","venue":"Filmhuis Den Haag","start":"13:00","end":"15:00","artist":"Film: Powwow People","category":"film"},
+{"day":"fri","venue":"Filmhuis Den Haag","start":"14:30","end":"15:40","artist":"Film: She Boars","category":"film"},
+{"day":"fri","venue":"Filmhuis Den Haag","start":"10:30","end":"12:00","artist":"Film: The Seasons","category":"film"},
+{"day":"sun","venue":"Filmhuis Den Haag","start":"10:30","end":"12:30","artist":"Film: To Use A Mountain","category":"film"},
+{"day":"fri","venue":"Concordia","start":"22:45","end":"23:45","artist":"T.B.A. on 2 April","category":"music"},
+{"day":"thu","venue":"West Den Haag \u2013 Basement: Engine Room","start":"15:30","end":"17:30","artist":"Listening session: Under the Cloud","category":"listening"},
+{"day":"fri","venue":"Theater aan het Spui \u2013 Zaal 1","start":"20:30","end":"21:15","artist":"Mayssa Jallad","category":"music"},
+{"day":"sun","venue":"Subterra","start":"15:00","end":"16:00","artist":"Subterra x Rewire: Echoes From The Core (Listening Session)","category":"listening"},
+{"day":"sun","venue":"Subterra","start":"16:00","end":"17:00","artist":"Subterra x Rewire: Echoes From The Core (DJ Set)","category":"music"},
+{"day":"fri","venue":"PAARD \u2013 Foyer","start":"16:30","end":"00:00","artist":"Operator x Rewire","category":"other"},
+{"day":"sat","venue":"PAARD \u2013 Foyer","start":"16:30","end":"00:00","artist":"Operator x Rewire","category":"other"},
+{"day":"sun","venue":"The Grey Space in the Middle \u2013 Basement","start":"19:00","end":"23:30","artist":"Rewire 2026 Closing Party","category":"music"},
+{"day":"fri","venue":"Amare \u2013 Concertzaal","start":"20:30","end":"21:15","artist":"Mayssa Jallad (Amare)","category":"music"}
+];
+
+// ─── AUTO-LOAD FROM REWIRE API ───
+async function loadFromAPI() {
+  // Try live API first
+  for (const url of [
+    'https://www.rewirefestival.nl/api/timetable',
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.rewirefestival.nl/api/timetable')
+  ]) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const raw = await res.json();
+      events = convertRawAPI(raw);
+      try { localStorage.setItem('rewire2026_events', JSON.stringify(events)); } catch(ex) {}
+      render();
+      return;
+    } catch(e) { continue; }
+  }
+  // Fallback: use embedded data snapshot
+  events = EMBEDDED_EVENTS;
+  try { localStorage.setItem('rewire2026_events', JSON.stringify(events)); } catch(ex) {}
+  render();
+}
+
+function convertRawAPI(raw) {
+  const venueLookup = {};
+  raw.venues.forEach(v => { venueLookup[v.id] = v.title; });
+  const dayKeys = ['thu','fri','sat','sun'];
+  return raw.events.map(e => {
+    const s = new Date(e.start);
+    const en = new Date(e.end);
+    const dayKey = dayKeys[e.day] || 'fri';
+    const sh = String(s.getUTCHours()).padStart(2,'0');
+    const sm = String(s.getUTCMinutes()).padStart(2,'0');
+    const eh = String(en.getUTCHours()).padStart(2,'0');
+    const em = String(en.getUTCMinutes()).padStart(2,'0');
+    const venue = venueLookup[e.venue] || 'Unknown';
+    const title = (e.timetable_title && e.timetable_title !== false) ? e.timetable_title : e.title;
+    let cat = 'music';
+    const lv = venue.toLowerCase();
+    const lt = (title||'').toLowerCase();
+    if (lv.includes('filmhuis')) cat = 'film';
+    else if (lt.includes('proximity music')) cat = 'installation';
+    else if (lt.includes('conversation') || lt.includes('lecture') || lt.includes('book launch') || lt.includes('workshop') || lt.includes('reading aloud')) cat = 'talk';
+    else if (lt.includes('listening session') || lt.includes('echoes from the core') || lt.includes('stories to sleep')) cat = 'listening';
+    else if (lt.includes('installation') || lt.includes('sound walk') || lt.includes('audio walk') || lt.includes('performance route') || lt.includes('tactology')) cat = 'installation';
+    else if (lv.includes('laak')) cat = 'club';
+    else if (lt.includes('film:') || lt.includes('film programme')) cat = 'film';
+    else if (lt.includes('festival hub') || lt.includes('radio worm') || lt.includes('operator x rewire')) cat = 'other';
+    return { day: dayKey, venue, start: sh+':'+sm, end: eh+':'+em, artist: title || e.title, category: cat };
+  }).filter(e => e.artist && e.artist !== 'false' && e.artist !== false);
+}
+
+// ─── INIT ───
+function init() {
+  // Restore from URL first (shared link takes priority)
+  const restoredFromURL = restoreFromURL();
+  
+  // Restore from localStorage if no URL params
+  if (!restoredFromURL) {
+    try {
+      const savedHighlights = localStorage.getItem('rewire2026_highlights');
+      if (savedHighlights) highlights = JSON.parse(savedHighlights);
+    } catch(e) {}
+  }
+  
+  // Restore events from localStorage cache
+  try {
+    const savedEvents = localStorage.getItem('rewire2026_events');
+    if (savedEvents) events = JSON.parse(savedEvents);
+  } catch(e) {}
+
+  // Day tabs
+  document.querySelectorAll('.day-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      currentDay = tab.dataset.day;
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      render();
+    });
+  });
+
+  // Palette
+  document.querySelectorAll('.palette-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentColor = parseInt(btn.dataset.color);
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Search
+  document.getElementById('searchBox').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    render();
+  });
+
+  // Close modal on overlay click
+  document.getElementById('importModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('importModal')) closeImportModal();
+  });
+
+  // Event delegation for timetable blocks
+  const tt = document.getElementById('timetable');
+  tt.addEventListener('click', (e) => {
+    const block = e.target.closest('.event-block');
+    if (block && block.dataset.eid) openDetail(block.dataset.eid);
+  });
+  tt.addEventListener('contextmenu', (e) => {
+    const block = e.target.closest('.event-block');
+    if (block && block.dataset.eid) {
+      e.preventDefault();
+      toggleHighlight(block.dataset.eid);
+    }
+  });
+  tt.addEventListener('mouseover', (e) => {
+    const block = e.target.closest('.event-block');
+    if (block && block.dataset.eid) showTooltip(e, block.dataset.eid);
+  });
+  tt.addEventListener('mouseout', (e) => {
+    const block = e.target.closest('.event-block');
+    if (block) hideTooltip();
+  });
+
+  // If no events, auto-fetch from API (works on any protocol)
+  if (events.length === 0) {
+    loadFromAPI();
+  }
+
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
